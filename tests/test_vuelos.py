@@ -31,3 +31,12 @@ def test_favoritos():
     cfg = {"favoritos": [{"destino": "ADZ", "tipo": "ida_y_vuelta", "precio_max": 600000}]}
     assert len(m.favoritos_baratos(cfg, [fila("ADZ", "ida_y_vuelta", 550000)])) == 1
     assert m.favoritos_baratos(cfg, [fila("ADZ", "ida_y_vuelta", 650000)]) == []
+
+
+def test_favorito_no_repite_aviso():
+    cfg = {"favoritos": [{"destino": "MDE", "tipo": "ida_y_vuelta", "precio_max": 300000}]}
+    ayer = [fila("MDE", "ida_y_vuelta", 240000, fecha="2026-10-22")]
+    assert m.favoritos_baratos(cfg, [fila("MDE", "ida_y_vuelta", 239000)], ayer) == []        # igual: no repite
+    assert len(m.favoritos_baratos(cfg, [fila("MDE", "ida_y_vuelta", 220000)], ayer)) == 1    # bajó más: avisa
+    caro = [fila("MDE", "ida_y_vuelta", 350000, fecha="2026-10-22")]
+    assert len(m.favoritos_baratos(cfg, [fila("MDE", "ida_y_vuelta", 290000)], caro)) == 1    # recién entra al tope

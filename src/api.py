@@ -52,12 +52,28 @@ def meses(desde: date, cantidad: int) -> list[str]:
     return out
 
 
+# La API devuelve resultados distintos según el "mercado" y el orden; se combinan varias consultas
+# para cubrir más destinos. El conteo de cada variante queda en data/diagnostico.json.
+VARIANTES = {
+    "co_precio": {"market": "co", "sorting": "price"},
+    "co_ruta": {"market": "co", "sorting": "route", "unique": "true"},
+    "global_precio": {"sorting": "price"},
+    "global_ruta": {"sorting": "route", "unique": "true"},
+}
+conteo_variantes: dict[str, int] = {}
+
+
 def buscar_desde(origen: str, mes: str, ida_y_vuelta: bool, moneda: str) -> list[dict]:
     """Vuelos más baratos desde `origen` a cualquier destino, saliendo en `mes` (AAAA-MM)."""
-    datos = _get("/aviasales/v3/prices_for_dates", origin=origen, departure_at=mes,
-                 one_way=str(not ida_y_vuelta).lower(), sorting="price", direct="false",
-                 currency=moneda, limit=1000, market="co")
-    return [normalizar(v, ida_y_vuelta, moneda) for v in (datos or {}).get("data", [])]
+    out = []
+    for nombre, extra in VARIANTES.items():
+        datos = _get("/aviasales/v3/prices_for_dates", origin=origen, departure_at=mes,
+                     one_way=str(not ida_y_vuelta).lower(), direct="false",
+                     currency=moneda, limit=1000, **extra)
+        filas = (datos or {}).get("data", []) or []
+        conteo_variantes[nombre] = conteo_variantes.get(nombre, 0) + len(filas)
+        out += [normalizar(v, ida_y_vuelta, moneda) for v in filas]
+    return out
 
 
 def normalizar(v: dict, ida_y_vuelta: bool, moneda: str) -> dict:

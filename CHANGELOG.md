@@ -10,6 +10,20 @@ Los commits automáticos "Vuelos del AAAA-MM-DD" solo actualizan `data/` y no se
 
 ---
 
+## v0.2.0 — 2026-10-23
+
+**Motivo:** la primera ejecución real funcionó (Medellín a $239.260 y Bogotá a $242.143 ida y vuelta), pero solo trajo 14 destinos, porque cada consulta a la API devuelve pocos resultados. Además, el aviso de favoritos se habría repetido todos los días.
+
+**Cambios:**
+- `src/api.py`: cada mes y tipo de vuelo se consulta de 4 formas (mercado Colombia o global, ordenado por precio o por ruta) y los resultados se combinan, quedándose con el más barato por destino.
+- `src/main.py`: se escribe `data/diagnostico.json` con cuántos resultados dio cada forma de consulta, para medir la cobertura y quitar las que no aporten.
+- `src/main.py`: el aviso de un favorito solo se envía la primera vez que baja de tu tope, o si después baja otro 2 % o más.
+- `tests/test_vuelos.py`: prueba de que el aviso de favoritos no se repite.
+
+**Cómo verificar:** `data/diagnostico.json` debería mostrar más de 14 destinos, y el bot no debería repetir el aviso de Medellín si el precio sigue igual.
+
+---
+
 ## v0.1.0 — 2026-10-23
 
 **Motivo:** primera versión. Vigilar los precios de vuelos desde Barranquilla a cualquier destino, recibir alertas por Telegram y ver una página con historial.

@@ -109,13 +109,27 @@ def bajas(historial, hoy_filas, hoy, baja_minima):
     return sorted(alertas, key=lambda a: a[0])
 
 
-def favoritos_baratos(cfg, hoy_filas):
+def favoritos_baratos(cfg, hoy_filas, historial=()):
+    """Favoritos por debajo de su tope. Para no repetir el aviso cada día, solo avisa si es la primera vez
+    o si el precio bajó más de 2 % frente al último día registrado."""
     mins = minimo_por_ruta(hoy_filas)
+    previos = {}
+    for r in historial:
+        k = (r["destino"], r["tipo"])
+        if k not in previos or r["fecha"] > previos[k][0]:
+            previos[k] = (r["fecha"], r["precio"])
+        elif r["fecha"] == previos[k][0]:
+            previos[k] = (r["fecha"], min(previos[k][1], r["precio"]))
     out = []
     for f in cfg.get("favoritos") or []:
-        r = mins.get((f["destino"], f["tipo"]))
-        if r and r["precio"] <= f["precio_max"]:
-            out.append((r, f["precio_max"]))
+        k = (f["destino"], f["tipo"])
+        r = mins.get(k)
+        if not r or r["precio"] > f["precio_max"]:
+            continue
+        antes = previos.get(k)
+        if antes and antes[1] <= f["precio_max"] and r["precio"] >= antes[1] * 0.98:
+            continue   # ya se avisó y no ha bajado más
+        out.append((r, f["precio_max"]))
     return out
 
 
@@ -181,12 +195,15 @@ def main():
     hoy_filas = recolectar(cfg, hoy, ciudades)
     historial = [r for r in leer_historial() if r["fecha"] != hoy]
     alertas = bajas(historial, hoy_filas, hoy, cfg["baja_minima"])
-    favs = favoritos_baratos(cfg, hoy_filas)
+    favs = favoritos_baratos(cfg, hoy_filas, historial)
     historial += hoy_filas
     guardar(historial)
     sitio.generar(historial, hoy, cfg, RAIZ / "sitio")
 
     destinos = len({r["destino"] for r in hoy_filas})
+    (RAIZ / "data" / "diagnostico.json").write_text(json.dumps({
+        "fecha": hoy, "precios": len(hoy_filas), "destinos": destinos, "resultados_por_variante": api.conteo_variantes,
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Listo: {len(hoy_filas)} precios, {destinos} destinos, {len(alertas)} bajas, {len(favs)} favoritos en precio.")
     if not hoy_filas:
         telegram.enviar("⚠️ <b>Alertas de vuelos</b>: hoy la API no devolvió vuelos. Revisa el registro de GitHub Actions.")
