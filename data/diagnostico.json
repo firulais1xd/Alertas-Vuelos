@@ -7,5 +7,13 @@
     "co_ruta": 36,
     "global_precio": 46,
     "global_ruta": 36
+  },
+  "telegram": {
+    "token_configurado": true,
+    "chat_id_secreto": false,
+    "chat_detectado": true,
+    "mensajes_en_bandeja": 3,
+    "enviados": 4,
+    "errores": []
   }
 }
