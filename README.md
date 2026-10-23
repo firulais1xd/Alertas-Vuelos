@@ -6,7 +6,7 @@ Todo corre gratis en GitHub Actions.
 
 ## Qué hace
 
-- **Todos los días a las 7:43 a. m.** consulta la API de Travelpayouts (Aviasales): vuelos de solo ida y de ida y vuelta, para cada uno de los próximos 6 meses.
+- **Todos los días a las 7:43 a. m.** consulta la API de Travelpayouts (Aviasales): vuelos de solo ida y de ida y vuelta, para cada uno de los próximos 6 meses. Primero busca "desde BAQ a cualquier parte" y luego destino por destino (~140 ciudades de todo el mundo, más las rutas populares desde BAQ).
 - Guarda el vuelo más barato por destino, mes y tipo en [`data/vuelos.csv`](data/vuelos.csv).
 - **Telegram:**
   - 🎯 Aviso cuando uno de tus **destinos favoritos** está por debajo del precio que pusiste en [`config/config.yml`](config/config.yml).
@@ -26,6 +26,8 @@ Todo corre gratis en GitHub Actions.
 
 ## Personalizar
 
+En `config/destinos.yml` está la lista de ~140 ciudades del mundo que se consultan una por una. Agrega o quita las que quieras, usando el código IATA de la ciudad.
+
 En `config/config.yml` puedes cambiar:
 - `favoritos`: destinos y el precio máximo que pagarías.
 - `meses_adelante`: cuántos meses hacia adelante buscar.
@@ -41,6 +43,7 @@ En `config/config.yml` puedes cambiar:
 
 ```
 config/config.yml     Origen, meses, favoritos y umbrales
+config/destinos.yml   Ciudades del mundo que se consultan una por una
 src/api.py            Consulta a Travelpayouts y nombres de ciudades
 src/main.py           Recolecta, guarda, detecta bajas y avisa
 src/sitio.py          Genera la página web

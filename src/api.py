@@ -54,11 +54,9 @@ def meses(desde: date, cantidad: int) -> list[str]:
 
 # La API devuelve resultados distintos según el "mercado" y el orden; se combinan varias consultas
 # para cubrir más destinos. El conteo de cada variante queda en data/diagnostico.json.
-VARIANTES = {
-    "co_precio": {"market": "co", "sorting": "price"},
-    "co_ruta": {"market": "co", "sorting": "route", "unique": "true"},
-    "global_precio": {"sorting": "price"},
-    "global_ruta": {"sorting": "route", "unique": "true"},
+VARIANTES = {   # mercado "co" y global dieron los mismos resultados (diagnóstico del 23-10-2026); se deja uno
+    "precio": {"market": "co", "sorting": "price"},
+    "ruta": {"market": "co", "sorting": "route", "unique": "true"},
 }
 conteo_variantes: dict[str, int] = {}
 
@@ -74,6 +72,23 @@ def buscar_desde(origen: str, mes: str, ida_y_vuelta: bool, moneda: str) -> list
         conteo_variantes[nombre] = conteo_variantes.get(nombre, 0) + len(filas)
         out += [normalizar(v, ida_y_vuelta, moneda) for v in filas]
     return out
+
+
+def buscar_a(origen: str, destino: str, ida_y_vuelta: bool, moneda: str) -> list[dict]:
+    """Vuelos más baratos de `origen` a un `destino` concreto, en cualquier fecha próxima."""
+    datos = _get("/aviasales/v3/prices_for_dates", origin=origen, destination=destino,
+                 one_way=str(not ida_y_vuelta).lower(), sorting="price", direct="false",
+                 currency=moneda, limit=100)
+    filas = (datos or {}).get("data", []) or []
+    conteo_variantes["por_destino"] = conteo_variantes.get("por_destino", 0) + len(filas)
+    time.sleep(0.15)   # no saturar la API
+    return [normalizar(v, ida_y_vuelta, moneda) for v in filas]
+
+
+def rutas_populares(origen: str, moneda: str) -> list[str]:
+    """Destinos más buscados desde `origen` según Aviasales."""
+    datos = _get("/v1/city-directions", origin=origen, currency=moneda)
+    return sorted((datos or {}).get("data", {}) or {})
 
 
 def normalizar(v: dict, ida_y_vuelta: bool, moneda: str) -> dict:

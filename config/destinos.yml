@@ -1,0 +1,15 @@
+# Destinos que se consultan uno por uno, además de la búsqueda general "desde BAQ a cualquier parte".
+# Son códigos IATA de ciudad (NYC incluye todos los aeropuertos de Nueva York, LON los de Londres, etc.).
+# Agrega o quita los que quieras. Las rutas populares desde BAQ se agregan solas.
+
+colombia: [BOG, MDE, CLO, CTG, SMR, ADZ, BGA, PEI, CUC, PSO, MTR, VVC, LET, EOH, AXM, NVA, RCH, VUP]
+
+caribe: [PTY, SJO, CUR, AUA, BON, PUJ, SDQ, STI, SJU, HAV, VRA, MBJ, KIN, NAS, CUN, SXM, POS, BGI, GUA, SAL, MGA, TGU, SAP, BZE]
+
+norteamerica: [MIA, FLL, ORL, TPA, NYC, WAS, BOS, ATL, IAH, DFW, CHI, LAX, SFO, LAS, SEA, YTO, YMQ, YVR, MEX, GDL, MTY, PVR, SJD]
+
+sudamerica: [CCS, UIO, GYE, LIM, CUZ, SCL, BUE, MVD, ASU, LPB, VVI, SAO, RIO, BSB, SSA, FLN, IGU, PDP]
+
+europa: [MAD, BCN, AGP, VLC, SVQ, LIS, OPO, PAR, LON, AMS, FRA, MUC, BER, ROM, MIL, VCE, FLR, ZRH, GVA, VIE, PRG, BUD, ATH, IST, DUB, EDI, BRU, CPH, STO, OSL, HEL, WAW, MOW]
+
+asia_oceania_africa: [DXB, DOH, TLV, CAI, CMN, JNB, CPT, NBO, DEL, BOM, BKK, SIN, KUL, HKG, TPE, SEL, TYO, OSA, PEK, SHA, MNL, DPS, SYD, MEL, AKL]

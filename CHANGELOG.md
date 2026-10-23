@@ -10,6 +10,24 @@ Los commits automáticos "Vuelos del AAAA-MM-DD" solo actualizan `data/` y no se
 
 ---
 
+## v0.3.0 — 2026-10-23
+
+**Motivo:** se pidió ampliar la búsqueda a destinos de todo el mundo. La consulta general "desde BAQ a cualquier parte" solo devolvía 23 destinos.
+
+**Cambios:**
+- Nuevo `config/destinos.yml`: ~140 ciudades agrupadas por región (Colombia, Caribe y Centroamérica, Norteamérica, Sudamérica, Europa, y Asia/Oceanía/África). Se pueden editar.
+- `src/api.py`: nueva consulta destino por destino (`buscar_a`), que trae precios de cualquier fecha próxima, y lectura de las rutas populares desde BAQ (`/v1/city-directions`), que se suman a la lista.
+- `src/api.py`: se quitaron las variantes de mercado "global", porque daban exactamente los mismos resultados que "co" (46 y 36). Ahorra consultas.
+- `src/main.py`: combina la búsqueda general con la de destino por destino, se queda con el más barato por destino, mes y tipo, y descarta fechas fuera de los meses configurados.
+- `tests/test_vuelos.py`: prueba de la combinación y del filtro de meses.
+- `README.md`: explica `config/destinos.yml`.
+
+**Cómo verificar:** `data/diagnostico.json` muestra `por_destino` en los resultados y un número de destinos mayor a 23.
+
+**Limitación:** la fuente (Aviasales) solo tiene precio para rutas que alguien buscó en los últimos días. Los destinos lejanos o poco buscados desde Barranquilla pueden no aparecer todos los días.
+
+---
+
 ## v0.2.1 — 2026-10-23
 
 **Motivo:** el bot de Telegram no enviaba mensajes, y desde fuera no se podía saber por qué (los registros de Actions no estaban accesibles).

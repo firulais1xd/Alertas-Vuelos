@@ -41,21 +41,49 @@ def cargar_ciudades():
     return c
 
 
+def lista_destinos(cfg) -> list[str]:
+    """Destinos de config/destinos.yml + rutas populares desde el origen."""
+    ruta = RAIZ / "config" / "destinos.yml"
+    destinos = []
+    if ruta.exists():
+        for grupo in (yaml.safe_load(ruta.read_text(encoding="utf-8")) or {}).values():
+            destinos += [str(d).upper() for d in grupo or []]
+    try:
+        destinos += api.rutas_populares(cfg["origen"], cfg["moneda"])
+    except Exception as e:
+        print(f"⚠️  No se pudieron leer las rutas populares: {e}")
+    return sorted(set(destinos) - {cfg["origen"]})
+
+
 def recolectar(cfg, hoy: str, ciudades: dict):
     """El vuelo más barato por (destino, mes, tipo)."""
+    meses = api.meses(datetime.fromisoformat(hoy).date(), cfg["meses_adelante"])
     mejores = {}
-    for mes in api.meses(datetime.fromisoformat(hoy).date(), cfg["meses_adelante"]):
+
+    def agregar(vuelos):
+        for v in vuelos:
+            mes = v["salida"][:7]
+            if not v["destino"] or v["precio"] <= 0 or v["destino"] == cfg["origen"] or v["salida"] < hoy or mes not in meses:
+                continue
+            clave = (v["destino"], mes, v["tipo"])
+            if clave not in mejores or v["precio"] < mejores[clave]["precio"]:
+                c = ciudades.get(v["destino"], {})
+                mejores[clave] = {"fecha": hoy, "mes": mes, "ciudad": c.get("nombre", v["destino"]),
+                                  "pais": c.get("pais", ""), "pais_codigo": c.get("pais_codigo", ""), **v}
+
+    # 1) Búsqueda general: desde el origen a cualquier parte, mes por mes
+    for mes in meses:
         for ida_y_vuelta in (False, True):
             vuelos = api.buscar_desde(cfg["origen"], mes, ida_y_vuelta, cfg["moneda"])
             print(f"{mes} {'ida y vuelta' if ida_y_vuelta else 'solo ida'}: {len(vuelos)} vuelos")
-            for v in vuelos:
-                if not v["destino"] or v["precio"] <= 0 or v["destino"] == cfg["origen"] or v["salida"] < hoy:
-                    continue
-                clave = (v["destino"], mes, v["tipo"])
-                if clave not in mejores or v["precio"] < mejores[clave]["precio"]:
-                    c = ciudades.get(v["destino"], {})
-                    mejores[clave] = {"fecha": hoy, "mes": mes, "ciudad": c.get("nombre", v["destino"]),
-                                      "pais": c.get("pais", ""), "pais_codigo": c.get("pais_codigo", ""), **v}
+            agregar(vuelos)
+
+    # 2) Destino por destino (más cobertura: Europa, Asia, etc.)
+    destinos = lista_destinos(cfg)
+    print(f"Consultando {len(destinos)} destinos uno por uno…")
+    for d in destinos:
+        for ida_y_vuelta in (False, True):
+            agregar(api.buscar_a(cfg["origen"], d, ida_y_vuelta, cfg["moneda"]))
     return list(mejores.values())
 
 

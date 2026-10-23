@@ -40,3 +40,17 @@ def test_favorito_no_repite_aviso():
     assert len(m.favoritos_baratos(cfg, [fila("MDE", "ida_y_vuelta", 220000)], ayer)) == 1    # bajó más: avisa
     caro = [fila("MDE", "ida_y_vuelta", 350000, fecha="2026-10-22")]
     assert len(m.favoritos_baratos(cfg, [fila("MDE", "ida_y_vuelta", 290000)], caro)) == 1    # recién entra al tope
+
+
+def test_recolectar_combina_y_filtra_meses(monkeypatch):
+    cfg = {"origen": "BAQ", "moneda": "cop", "meses_adelante": 2}
+    def v(dest, fecha, precio, iv):
+        return api.normalizar({"destination": dest, "price": precio, "departure_at": fecha}, iv, "cop")
+    monkeypatch.setattr(api, "buscar_desde", lambda o, mes, iv, mon: [v("MDE", mes + "-15", 300000, iv)])
+    monkeypatch.setattr(api, "buscar_a", lambda o, d, iv, mon: [v(d, "2026-11-20", 250000, iv), v(d, "2027-06-01", 100, iv)])
+    monkeypatch.setattr(m, "lista_destinos", lambda cfg: ["MDE", "MAD"])
+    filas = m.recolectar(cfg, "2026-10-23", {})
+    claves = {(f["destino"], f["mes"], f["tipo"]): f["precio"] for f in filas}
+    assert claves[("MDE", "2026-11", "ida")] == 250000          # se queda con el más barato
+    assert ("MAD", "2026-11", "ida_y_vuelta") in claves
+    assert not any(f["mes"] == "2027-06" for f in filas)        # fuera de los meses buscados
