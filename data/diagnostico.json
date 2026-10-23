@@ -3,17 +3,16 @@
   "precios": 36,
   "destinos": 23,
   "resultados_por_variante": {
-    "co_precio": 46,
-    "co_ruta": 36,
-    "global_precio": 46,
-    "global_ruta": 36
+    "precio": 46,
+    "ruta": 36,
+    "por_destino": 59
   },
   "telegram": {
-    "token_configurado": true,
-    "chat_id_secreto": true,
+    "token_configurado": false,
+    "chat_id_secreto": false,
     "chat_detectado": false,
     "mensajes_en_bandeja": null,
-    "enviados": 1,
+    "enviados": 0,
     "errores": []
   }
 }
