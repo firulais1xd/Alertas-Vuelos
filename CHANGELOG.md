@@ -26,6 +26,8 @@ Los commits automáticos "Vuelos del AAAA-MM-DD" solo actualizan `data/` y no se
 
 **Limitación:** la fuente (Aviasales) solo tiene precio para rutas que alguien buscó en los últimos días. Los destinos lejanos o poco buscados desde Barranquilla pueden no aparecer todos los días.
 
+**Resultado (23-10-2026):** la consulta por destino devolvió solo 59 precios en total y la cobertura se mantuvo en 23 destinos. El límite es la fuente: Aviasales casi no tiene búsquedas recientes desde BAQ. Se evaluó cambiar a Google Flights (fast-flights) o SerpApi, y se decidió dejarlo así por ahora.
+
 ---
 
 ## v0.2.1 — 2026-10-23
