@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vuelos desde Barranquilla</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#16202a;--muted:#5f6b76;--line:#dfe4e8;--accent:#0b63ce;--accent-soft:#e6f0fb;--good:#0f7b53}
+@media (prefers-color-scheme:dark){:root{--bg:#10151a;--card:#182028;--ink:#e8edf2;--muted:#9aa7b3;--line:#2a343e;--accent:#5aa2f5;--accent-soft:#1a2b40;--good:#4cc38a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.6rem;margin:0}
+h2{font-size:1.05rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:4px 0 16px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;border:0;background:none;color:var(--muted);padding:7px 12px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+input[type=search]{font:inherit;flex:1;min-width:160px;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.lista{display:flex;flex-direction:column;gap:8px}
+.dest{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.dest:hover{border-color:var(--accent)}
+.fila{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ciudad{font-weight:650}
+.pais{color:var(--muted);font-size:.85rem}
+.precio{font-weight:750;font-size:1.1rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.det{color:var(--muted);font-size:.85rem;margin-top:2px}
+.det a{color:var(--accent);text-decoration:none;font-weight:600}
+.tag{display:inline-block;font-size:.72rem;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:6px;vertical-align:2px}
+.extra{display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.dest.open .extra{display:block}
+.chart{position:relative;height:200px;margin-top:8px}
+.vacio{color:var(--muted);text-align:center;padding:24px}
+.nota{color:var(--muted);font-size:.82rem;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <h1>✈️ Vuelos desde Barranquilla</h1>
+  <p class="sub" id="sub"></p>
+  <div class="controls">
+    <div class="seg" id="tipo"><button data-v="ida_y_vuelta" class="on">Ida y vuelta</button><button data-v="ida">Solo ida</button></div>
+    <div class="seg" id="zona"><button data-v="todos" class="on">Todos</button><button data-v="nac">Nacionales</button><button data-v="int">Internacionales</button></div>
+    <input type="search" id="q" placeholder="Buscar ciudad o país…">
+  </div>
+  <div class="lista" id="lista"></div>
+  <p class="nota">Precios en COP tomados de búsquedas recientes en Aviasales (últimas 48 h). Pueden cambiar; confírmalos en el enlace antes de comprar. Toca un destino para ver el precio por mes y su historial.</p>
+</main>
+<script>
+const D = __DATOS__;
+const $ = id => document.getElementById(id);
+const pesos = x => "$" + Math.round(x).toLocaleString("es-CO");
+const fecha = s => s ? new Date(s + "T12:00:00").toLocaleDateString("es-CO", {day:"numeric", month:"short"}) : "";
+const mesNombre = m => new Date(m + "-15T12:00:00").toLocaleDateString("es-CO", {month:"short", year:"2-digit"});
+let tipo = "ida_y_vuelta", zona = "todos";
+$("sub").textContent = `Actualizado el ${new Date(D.hoy + "T12:00:00").toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})} · ${D.destinos.length} destinos · ${D.dias} día${D.dias===1?"":"s"} de historial`;
+
+function seg(id, set) {
+  $(id).onclick = e => { if (!e.target.dataset.v) return;
+    [...$(id).children].forEach(b => b.classList.toggle("on", b === e.target)); set(e.target.dataset.v); pintar(); };
+}
+seg("tipo", v => tipo = v); seg("zona", v => zona = v);
+$("q").oninput = pintar;
+
+const charts = {};
+function pintar() {
+  const q = $("q").value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const items = D.destinos.filter(d => d[tipo] && (zona === "todos" || (zona === "nac") === d.nacional) &&
+    (d.ciudad + " " + d.pais + " " + d.codigo).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q))
+    .sort((a, b) => a[tipo].precio - b[tipo].precio);
+  $("lista").innerHTML = items.length ? items.map(d => {
+    const v = d[tipo];
+    const esc = v.escalas == 0 ? "directo" : `${v.escalas} escala${v.escalas > 1 ? "s" : ""}`;
+    return `<div class="dest" data-c="${d.codigo}">
+      <div class="fila"><div><span class="ciudad">${d.ciudad}</span>${d.nacional ? '<span class="tag">Nacional</span>' : ""}<div class="pais">${d.pais} · ${d.codigo}</div></div>
+      <div class="precio">${pesos(v.precio)}</div></div>
+      <div class="det">${fecha(v.salida)}${v.regreso ? " → " + fecha(v.regreso) : ""} · ${v.aerolinea} · ${esc}${v.link ? ` · <a href="${v.link}" target="_blank" rel="noopener">Ver vuelo ↗</a>` : ""}</div>
+      <div class="extra"><h2>Precio por mes de salida</h2><div class="chart"><canvas id="m-${d.codigo}"></canvas></div>
+        <h2 style="margin-top:12px">Historial del precio más barato</h2><div class="chart"><canvas id="h-${d.codigo}"></canvas></div></div>
+    </div>`; }).join("") : '<div class="vacio">No hay vuelos con estos filtros.</div>';
+}
+$("lista").onclick = e => {
+  if (e.target.closest("a")) return;
+  const el = e.target.closest(".dest"); if (!el) return;
+  el.classList.toggle("open");
+  if (el.classList.contains("open")) graficar(el.dataset.c);
+};
+function graficar(c) {
+  const d = D.destinos.find(x => x.codigo === c);
+  const css = getComputedStyle(document.documentElement);
+  const color = css.getPropertyValue("--accent").trim(), muted = css.getPropertyValue("--muted"), line = css.getPropertyValue("--line");
+  const ejes = {x: {ticks: {color: muted}, grid: {display: false}}, y: {ticks: {color: muted, callback: v => pesos(v)}, grid: {color: line}}};
+  const base = {maintainAspectRatio: false, animation: false, plugins: {legend: {display: false}, tooltip: {callbacks: {label: x => pesos(x.parsed.y)}}}, scales: ejes};
+  const meses = Object.keys(d.meses).sort();
+  charts["m"+c]?.destroy(); charts["h"+c]?.destroy();
+  charts["m"+c] = new Chart($("m-"+c), {type: "bar", data: {labels: meses.map(mesNombre),
+    datasets: [{data: meses.map(m => d.meses[m][tipo] ?? null), backgroundColor: color, borderRadius: 6}]}, options: base});
+  const h = (D.historia[c] || {})[tipo] || [];
+  charts["h"+c] = new Chart($("h-"+c), {type: "line", data: {labels: h.map(x => x[0].slice(5)),
+    datasets: [{data: h.map(x => x[1]), borderColor: color, backgroundColor: color, tension: .25, pointRadius: h.length > 40 ? 0 : 3}]}, options: base});
+}
+pintar();
+</script>
+</body>
+</html>

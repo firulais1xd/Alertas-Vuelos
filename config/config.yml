@@ -1,0 +1,32 @@
+# Configuración de las alertas de vuelos.
+
+origen: BAQ            # Barranquilla (aeropuerto Ernesto Cortissoz)
+moneda: cop
+meses_adelante: 6      # cuántos meses hacia el futuro se buscan
+
+# Alerta cuando el precio de una ruta baja este porcentaje frente a su precio habitual (mediana de 30 días)
+baja_minima: 0.15
+
+# Destinos que te interesan especialmente, con el precio máximo que pagarías (en COP).
+# Si aparece un vuelo por debajo de ese precio, te avisa aunque no haya "bajado".
+# Código IATA de la ciudad: BOG Bogotá, MDE Medellín, ADZ San Andrés, MIA Miami, MAD Madrid, CUN Cancún, PTY Panamá...
+# tipo: ida | ida_y_vuelta
+favoritos:
+  - destino: MDE
+    tipo: ida_y_vuelta
+    precio_max: 300000
+  - destino: ADZ
+    tipo: ida_y_vuelta
+    precio_max: 600000
+  - destino: MIA
+    tipo: ida_y_vuelta
+    precio_max: 1500000
+  - destino: MAD
+    tipo: ida_y_vuelta
+    precio_max: 3000000
+  - destino: CUN
+    tipo: ida_y_vuelta
+    precio_max: 1500000
+
+# Cuántos destinos mostrar en el resumen semanal de Telegram
+top_resumen: 10
