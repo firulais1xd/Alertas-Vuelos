@@ -12,9 +12,16 @@ import requests
 API = "https://api.telegram.org/bot{token}/{metodo}"
 LIMITE = 4000
 
+# Resumen del último intento de envío (sin token ni chat ID), para diagnosticar desde el repositorio
+estado = {"token_configurado": False, "chat_id_secreto": False, "chat_detectado": False,
+          "mensajes_en_bandeja": None, "enviados": 0, "errores": []}
+
 
 def _chat_desde_mensajes(token: str) -> str | None:
     r = requests.get(API.format(token=token, metodo="getUpdates"), timeout=20).json()
+    if not r.get("ok"):
+        estado["errores"].append(f"getUpdates: {r.get('error_code')} {r.get('description', '')}"[:200])
+    estado["mensajes_en_bandeja"] = len(r.get("result", []))
     for upd in reversed(r.get("result", [])):
         msg = upd.get("message") or upd.get("edited_message") or {}
         chat = msg.get("chat", {}).get("id")
@@ -25,10 +32,12 @@ def _chat_desde_mensajes(token: str) -> str | None:
 
 def enviar(texto: str) -> bool:
     token = os.getenv("TELEGRAM_TOKEN", "").strip()
+    estado["token_configurado"] = bool(token)
     if not token:
         print("ℹ️  Sin TELEGRAM_TOKEN: no se envía nada a Telegram. Mensaje:\n" + texto)
         return False
     chat = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    estado["chat_id_secreto"] = bool(chat)
     aviso_chat = False
     if not chat:
         chat = _chat_desde_mensajes(token)
@@ -36,6 +45,7 @@ def enviar(texto: str) -> bool:
             print("⚠️  No encuentro tu chat: abre tu bot en Telegram, escríbele 'hola' y vuelve a ejecutar.")
             return False
         aviso_chat = True
+        estado["chat_detectado"] = True
 
     partes = _partir(texto)
     if aviso_chat:
@@ -50,7 +60,10 @@ def enviar(texto: str) -> bool:
         })
         if not r.ok:
             print(f"⚠️  Telegram respondió {r.status_code}: {r.text[:300]}")
+            estado["errores"].append(f"sendMessage {r.status_code}: {r.json().get('description', '')}"[:200])
             ok = False
+        else:
+            estado["enviados"] += 1
     return ok
 
 

@@ -214,6 +214,9 @@ def main():
     resumen = os.getenv("RESUMEN", "").lower() in ("1", "true", "si", "sí")
     if resumen or ahora.weekday() == 0:
         telegram.enviar(mensaje_resumen(hoy_filas, cfg, url_pagina()))
+    diag = json.loads((RAIZ / "data" / "diagnostico.json").read_text(encoding="utf-8"))
+    diag["telegram"] = telegram.estado
+    (RAIZ / "data" / "diagnostico.json").write_text(json.dumps(diag, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":

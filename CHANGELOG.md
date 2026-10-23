@@ -10,6 +10,18 @@ Los commits automáticos "Vuelos del AAAA-MM-DD" solo actualizan `data/` y no se
 
 ---
 
+## v0.2.1 — 2026-10-23
+
+**Motivo:** el bot de Telegram no enviaba mensajes, y desde fuera no se podía saber por qué (los registros de Actions no estaban accesibles).
+
+**Cambios:**
+- `src/telegram.py`: registra el resultado de cada envío: si hay token, si se detectó el chat, cuántos mensajes tenía el bot en su bandeja, cuántos se enviaron y los errores que devolvió Telegram. No guarda el token ni el número de chat.
+- `src/main.py`: ese registro queda en la sección `"telegram"` de `data/diagnostico.json`.
+
+**Cómo verificar:** después de una ejecución, `data/diagnostico.json` muestra el estado de Telegram.
+
+---
+
 ## v0.2.0 — 2026-10-23
 
 **Motivo:** la primera ejecución real funcionó (Medellín a $239.260 y Bogotá a $242.143 ida y vuelta), pero solo trajo 14 destinos, porque cada consulta a la API devuelve pocos resultados. Además, el aviso de favoritos se habría repetido todos los días.
