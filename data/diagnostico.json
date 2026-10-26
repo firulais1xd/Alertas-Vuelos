@@ -1,18 +1,18 @@
 {
-  "fecha": "2026-10-25",
-  "precios": 48,
-  "destinos": 28,
+  "fecha": "2026-10-26",
+  "precios": 47,
+  "destinos": 29,
   "resultados_por_variante": {
-    "precio": 50,
-    "ruta": 48,
-    "por_destino": 71
+    "precio": 54,
+    "ruta": 47,
+    "por_destino": 74
   },
   "telegram": {
-    "token_configurado": false,
-    "chat_id_secreto": false,
+    "token_configurado": true,
+    "chat_id_secreto": true,
     "chat_detectado": false,
     "mensajes_en_bandeja": null,
-    "enviados": 0,
+    "enviados": 1,
     "errores": []
   }
 }
