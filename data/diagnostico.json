@@ -1,11 +1,11 @@
 {
-  "fecha": "2026-10-27",
-  "precios": 44,
-  "destinos": 29,
+  "fecha": "2026-10-28",
+  "precios": 42,
+  "destinos": 27,
   "resultados_por_variante": {
-    "precio": 51,
-    "ruta": 44,
-    "por_destino": 68
+    "precio": 45,
+    "ruta": 42,
+    "por_destino": 61
   },
   "telegram": {
     "token_configurado": false,
