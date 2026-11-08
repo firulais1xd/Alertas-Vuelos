@@ -1,10 +1,10 @@
 {
-  "fecha": "2026-11-07",
-  "precios": 45,
-  "destinos": 29,
+  "fecha": "2026-11-08",
+  "precios": 46,
+  "destinos": 31,
   "resultados_por_variante": {
-    "precio": 50,
-    "ruta": 45,
+    "precio": 48,
+    "ruta": 46,
     "por_destino": 70
   },
   "telegram": {
